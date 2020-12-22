@@ -1,33 +1,42 @@
 unit testcase_arraylist;
 
-{$mode objfpc}{$H+}
+{$IFDEF FPC}
+  {$mode objfpc}{$H+}
+{$ENDIF}
 
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, container.arraylist, utils.functor,
-    utils.pair;
+  Classes, SysUtils, container.arraylist, utils.functor, utils.pair
+  {$IFDEF FPC}, fpcunit, testregistry{$ELSE}, TestFramework{$ENDIF};
 
 type
-  TIntegerArrayList = specialize TArrayList<Integer, TCompareFunctorInteger>;
-  TStringArrayList = specialize TArrayList<String, TCompareFunctorString>;
+  TIntegerArrayList = {$IFDEF FPC}specialize{$ENDIF} TArrayList<Integer,
+    TCompareFunctorInteger>;
+  TStringArrayList = {$IFDEF FPC}specialize{$ENDIF} TArrayList<String,
+    TCompareFunctorString>;
 
-  TPairInteger = specialize TPair<Integer, Integer>;
+  TPairInteger = {$IFDEF FPC}specialize{$ENDIF} TPair<Integer, Integer>;
   TPairIntegerCompareFunctor = class
-    (specialize TBinaryFunctor<TPairInteger, Integer>)
+    ({$IFDEF FPC}specialize{$ENDIF} TBinaryFunctor<TPairInteger, Integer>)
   public
     function Call(AValue1, AValue2 : TPairInteger) : Integer; override;
   end;
 
-  TPairIntegerArrayList = specialize TArrayList<TPairInteger,
+  TPairIntegerArrayList = {$IFDEF FPC}specialize{$ENDIF} TArrayList<TPairInteger,
     TPairIntegerCompareFunctor>;
 
   TArrayListTestCase = class(TTestCase)
+  public
+    {$IFNDEF FPC}
+    procedure AssertTrue (AMessage : String; ACondition : Boolean);
+    {$ENDIF}
   published
     procedure Test_IntegerArrayList_CreateNewEmpty;
     procedure Test_IntegerArrayList_AppendNewValueInto;
     procedure Test_IntegerArrayList_AppendNewValueAndReallocMemory;
     procedure Test_IntegerArrayList_PrependValueInto;
+    procedure Test_IntegerArrayList_PrepentOneMillionValuesInto;
     procedure Test_IntegerArrayList_AppendNewValueAndClear;
     procedure Test_IntegerArrayList_RemoveValueFrom;
     procedure Test_IntegerArrayList_Sort;
@@ -35,17 +44,22 @@ type
     procedure Test_IntegerArrayList_IterateRange;
     procedure Test_IntegerArrayList_InsertOneMillionValuesInto;
     procedure Test_PairIntegerArrayList_AppendObject;
+    procedure Test_IntegerArrayList_SearchInEmpty;
+    procedure Test_IntegerArrayList_LastElementIterator;
 
     procedure Test_StringArrayList_CreateNewEmpty;
     procedure Test_StringArrayList_AppendNewValueInto;
     procedure Test_StringArrayList_AppendNewValueAndReallocMemory;
     procedure Test_StringArrayList_PrependValueInto;
+    procedure Test_StringArrayList_PrepentOneMillionValuesInto;
     procedure Test_StringArrayList_AppendNewValueAndClear;
     procedure Test_StringArrayList_RemoveValueFrom;
     procedure Test_StringArrayList_Sort;
     procedure Test_StringArrayList_IterateValues;
     procedure Test_StringArrayList_IterateRange;
     procedure Test_StringArrayList_InsertOneMillionValuesInto;
+    procedure Test_StringArrayList_SearchInEmpty;
+    procedure Test_StringArrayList_LastElementIterator;
   end;
 
 implementation
@@ -65,6 +79,14 @@ begin
   end;
 end;
 
+{$IFNDEF FPC}
+procedure TArrayListTestCase.AssertTrue(AMessage : String; ACondition :
+  Boolean);
+begin
+  CheckTrue(ACondition, AMessage);
+end;
+{$ENDIF}
+
 procedure TArrayListTestCase.Test_IntegerArrayList_CreateNewEmpty;
 var
   arr : TIntegerArrayList;
@@ -73,7 +95,7 @@ begin
 
   AssertTrue('#Test_IntegerArrayList_CreateNewEmpty -> ' +
    'ArrayList must be empty', arr.Length = 0);
-
+  
   FreeAndNil(arr);
 
   arr := TIntegerArrayList.Create(10);
@@ -92,7 +114,7 @@ begin
 
   AssertTrue('#Test_StringArrayList_CreateNewEmpty -> ' +
    'ArrayList must be empty', arr.Length = 0);
-
+  
   FreeAndNil(arr);
 
   arr := TStringArrayList.Create(10);
@@ -128,7 +150,7 @@ begin
   AssertTrue('#Test_IntegerArrayList_AppendNewValueInto -> '+
     'ArrayLists index 2 value is not correct', arr.Value[2]
     {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 5);
-
+  
   FreeAndNil(arr);
 end;
 
@@ -157,7 +179,7 @@ begin
   AssertTrue('#Test_StringArrayList_AppendNewValueInto -> '+
     'ArrayLists index 2 value is not correct', arr.Value[2]
     {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 'test5');
-
+  
   FreeAndNil(arr);
 end;
 
@@ -207,7 +229,7 @@ begin
   AssertTrue('#Test_IntegerArrayList_AppendNewValueAndReallocMemory -> ' +
     'ArrayLists index 6 value is not correct', arr.Value[6]
     {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = -31);
-
+  
   FreeAndNil(arr);
 end;
 
@@ -257,7 +279,7 @@ begin
   AssertTrue('#Test_StringArrayList_AppendNewValueAndReallocMemory -> ' +
     'ArrayLists index 6 value is not correct', arr.Value[6]
     {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 'test-31');
-
+  
   FreeAndNil(arr);
 end;
 
@@ -320,11 +342,69 @@ begin
     'ArrayLists index 1 value is not correct', arr.Value[1]
     {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 'test-11');
   AssertTrue('#Test_StringArrayList_PrependValueInto -> ' +
-    'ArrayLists index 0 value is not correct', arr.Value[2]
+    'ArrayLists index 2 value is not correct', arr.Value[2]
     {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 'test43');
   AssertTrue('#Test_StringArrayList_PrependValueInto -> ' +
-    'ArrayLists index 1 value is not correct', arr.Value[3]
+    'ArrayLists index 3 value is not correct', arr.Value[3]
     {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 'test67');
+  
+  FreeAndNil(arr);
+end;
+
+procedure TArrayListTestCase.Test_IntegerArrayList_PrepentOneMillionValuesInto;
+var
+  arr : TIntegerArrayList;
+  index, arr_index : Integer;
+begin
+  arr := TIntegerArrayList.Create;
+  
+  for index := 0 to 1000 do
+  begin
+    AssertTrue('#Test_IntegerArrayList_InsertOneMillionValuesInto -> ' +
+    'ArrayList value ' + IntToStr(index) + ' not append', arr.Prepend(Index));
+  end;
+
+  AssertTrue('#Test_IntegerArrayList_InsertOneMillionValuesInto -> ' +
+    'ArrayLists length is not correct', arr.Length = 1001);
+
+  arr_index := 0;
+  for index := 1000 downto 0 do
+  begin
+    AssertTrue('#Test_IntegerArrayList_InsertOneMillionValuesInto -> ' +
+      'ArrayLists index ' + IntToStr(arr_index) + ' value is not correct',
+      arr.Value[arr_index]{$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = index);
+    Inc(arr_index);
+  end;
+
+  FreeAndNil(arr);
+end;
+
+procedure TArrayListTestCase.Test_StringArrayList_PrepentOneMillionValuesInto;
+var
+  arr : TStringArrayList;
+  index, arr_index : Integer;
+begin
+  arr := TStringArrayList.Create;
+  
+  for index := 0 to 1000 do
+  begin
+    AssertTrue('#Test_StringArrayList_InsertOneMillionValuesInto -> ' +
+      'ArrayList value' + IntToStr(index) + ' not append',
+      arr.Prepend('test' + IntToStr(index)));
+  end;
+
+  AssertTrue('#Test_StringArrayList_InsertOneMillionValuesInto -> ' +
+    'ArrayLists length is not correct', arr.Length = 1001);
+
+  arr_index := 0;
+  for index := 1000 downto 0 do
+  begin
+    AssertTrue('#Test_StringArrayList_InsertOneMillionValuesInto -> ' +
+      'ArrayLists index ' + IntToStr(arr_index) + ' value is not correct',
+      arr.Value[arr_index]{$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 'test' +
+      IntToStr(index));
+    Inc(arr_index);
+  end;
 
   FreeAndNil(arr);
 end;
@@ -354,12 +434,12 @@ begin
   AssertTrue('#Test_IntegerArrayList_AppendNewValueAndClear -> '+
     'ArrayLists index 2 value is not correct', arr.Value[2]
     {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 5);
-
+ 
   arr.Clear;
 
   AssertTrue('#Test_IntegerArrayList_AppendNewValueAndClear -> ' +
    'ArrayList must be empty', arr.Length = 0);
-
+  
   FreeAndNil(arr);
 end;
 
@@ -388,12 +468,12 @@ begin
   AssertTrue('#Test_StringArrayList_AppendNewValueAndClear -> '+
     'ArrayLists index 2 value is not correct', arr.Value[2]
     {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 'test5');
-
+  
   arr.Clear;
-
+  
   AssertTrue('#Test_IntegerArrayList_AppendNewValueAndClear -> ' +
    'ArrayList must be empty', arr.Length = 0);
-
+  
   FreeAndNil(arr);
 end;
 
@@ -438,7 +518,7 @@ begin
   AssertTrue('#Test_IntegerArrayList_RemoveValueFrom -> ' +
     'ArrayLists index 3 value is not correct', arr.Value[3]
     {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 65);
-
+  
   arr.Remove(1);
 
   AssertTrue('#Test_IntegerArrayList_RemoveValueFrom -> ' +
@@ -458,7 +538,7 @@ begin
     'ArrayList value 72 not append', arr.Append(72));
   AssertTrue('#Test_IntegerArrayList_RemoveValueFrom -> ' +
     'ArrayList value 943 not append', arr.Append(943));
-
+  
   arr.RemoveRange(2, 3);
 
   AssertTrue('#Test_IntegerArrayList_RemoveValueFrom -> ' +
@@ -470,7 +550,7 @@ begin
   AssertTrue('#Test_IntegerArrayList_RemoveValueFrom -> ' +
     'ArrayLists index 1 value is not correct', arr.Value[1]
     {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 492);
-
+  
   FreeAndNil(arr);
 end;
 
@@ -479,7 +559,7 @@ var
   arr : TStringArrayList;
 begin
   arr := TStringArrayList.Create;
-
+  
   AssertTrue('#Test_StringArrayList_RemoveValueFrom -> ' +
     'ArrayList value test342 not append', arr.Append('test342'));
   AssertTrue('#Test_StringArrayList_RemoveValueFrom -> ' +
@@ -517,7 +597,7 @@ begin
   AssertTrue('#Test_StringArrayList_RemoveValueFrom -> ' +
     'ArrayLists index 3 value is not correct', arr.Value[3]
     {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 'test65');
-
+  
   arr.Remove(1);
 
   AssertTrue('#Test_StringArrayList_RemoveValueFrom -> ' +
@@ -537,7 +617,7 @@ begin
     'ArrayList value test72 not append', arr.Append('test72'));
   AssertTrue('#Test_StringArrayList_RemoveValueFrom -> ' +
     'ArrayList value test943 not append', arr.Append('test943'));
-
+  
   arr.RemoveRange(2, 3);
 
   AssertTrue('#Test_StringArrayList_RemoveValueFrom -> ' +
@@ -549,7 +629,7 @@ begin
   AssertTrue('#Test_StringArrayList_RemoveValueFrom -> ' +
     'ArrayLists index 1 value is not correct', arr.Value[1]
     {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 'test492');
-
+  
   FreeAndNil(arr);
 end;
 
@@ -558,7 +638,7 @@ var
   arr : TIntegerArrayList;
 begin
   arr := TIntegerArrayList.Create;
-
+  
   AssertTrue('#Test_IntegerArrayList_Sort -> ' +
     'ArrayList value 9 not append', arr.Append(9));
   AssertTrue('#Test_IntegerArrayList_Sort -> ' +
@@ -567,7 +647,7 @@ begin
     'ArrayList value -4 not append', arr.Append(-4));
   AssertTrue('#Test_IntegerArrayList_Sort -> ' +
     'ArrayList value 12 not append', arr.Append(12));
-
+  
   arr.Sort;
 
   AssertTrue('#Test_IntegerArrayList_Sort -> ' +
@@ -592,7 +672,7 @@ begin
     'ArrayList value 5 not prepend', arr.Prepend(5));
   AssertTrue('#Test_IntegerArrayList_Sort -> ' +
     'ArrayList value 17 not insert at position 1', arr.Insert(1, 17));
-
+  
   arr.Sort;
 
   AssertTrue('#Test_IntegerArrayList_Sort -> ' +
@@ -619,7 +699,7 @@ begin
   AssertTrue('#Test_IntegerArrayList_Sort -> ' +
     'ArrayLists index 6 value is not correct', arr.Value[6]
     {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 43);
-
+  
   FreeAndNil(arr);
 end;
 
@@ -630,14 +710,14 @@ begin
   arr := TStringArrayList.Create;
 
   AssertTrue('#Test_IntegerArrayList_Sort -> ' +
-    'ArrayList value test9 not append', arr.Append('apple'));
+    'ArrayList value apple not append', arr.Append('apple'));
   AssertTrue('#Test_IntegerArrayList_Sort -> ' +
-    'ArrayList value test3 not append', arr.Append('orange'));
+    'ArrayList value orange not append', arr.Append('orange'));
   AssertTrue('#Test_IntegerArrayList_Sort -> ' +
-    'ArrayList value test-4 not append', arr.Append('banana'));
+    'ArrayList value banana not append', arr.Append('banana'));
   AssertTrue('#Test_IntegerArrayList_Sort -> ' +
-    'ArrayList value test12 not append', arr.Append('potato'));
-
+    'ArrayList value potato not append', arr.Append('potato'));
+  
   arr.Sort;
 
   AssertTrue('#Test_IntegerArrayList_Sort -> ' +
@@ -657,12 +737,12 @@ begin
     {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 'potato');
 
   AssertTrue('#Test_IntegerArrayList_Sort -> ' +
-    'ArrayList value test43 not insert at position 2', arr.Insert(2, 'mango'));
+    'ArrayList value mango not insert at position 2', arr.Insert(2, 'mango'));
   AssertTrue('#Test_IntegerArrayList_Sort -> ' +
-    'ArrayList value test5 not prepend', arr.Prepend('cherry'));
+    'ArrayList value cherry not prepend', arr.Prepend('cherry'));
   AssertTrue('#Test_IntegerArrayList_Sort -> ' +
-    'ArrayList value test17 not insert at position 1', arr.Insert(1, 'tomato'));
-
+    'ArrayList value tomato not insert at position 1', arr.Insert(1, 'tomato'));
+  
   arr.Sort;
 
   AssertTrue('#Test_IntegerArrayList_Sort -> ' +
@@ -689,7 +769,7 @@ begin
   AssertTrue('#Test_IntegerArrayList_Sort -> ' +
     'ArrayLists index 6 value is not correct', arr.Value[6]
     {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 'tomato');
-
+  
   FreeAndNil(arr);
 end;
 
@@ -709,7 +789,7 @@ begin
     'ArrayList value -4 not append', arr.Append(-4));
   AssertTrue('#Test_IntegerArrayList_IterateValues -> ' +
     'ArrayList value 12 not append', arr.Append(12));
-
+  
   counter := 0;
   iterator := arr.FirstEntry;
   while iterator.HasValue do
@@ -915,9 +995,9 @@ begin
 
   for index := 0 to 1000000 do
   begin
-     AssertTrue('#Test_IntegerArrayList_InsertOneMillionValuesInto -> ' +
-    'ArrayLists index ' + IntToStr(index) + ' value is not correct',
-    arr.Value[index]{$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = index);
+    AssertTrue('#Test_IntegerArrayList_InsertOneMillionValuesInto -> ' +
+      'ArrayLists index ' + IntToStr(index) + ' value is not correct',
+      arr.Value[index]{$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = index);
   end;
 
   FreeAndNil(arr);
@@ -933,8 +1013,8 @@ begin
   for index := 0 to 1000000 do
   begin
     AssertTrue('#Test_StringArrayList_InsertOneMillionValuesInto -> ' +
-    'ArrayList value' + IntToStr(index) + ' not append',
-    arr.Append('test' + IntToStr(index)));
+      'ArrayList value' + IntToStr(index) + ' not append',
+      arr.Append('test' + IntToStr(index)));
   end;
 
   AssertTrue('#Test_StringArrayList_InsertOneMillionValuesInto -> ' +
@@ -942,10 +1022,10 @@ begin
 
   for index := 0 to 1000000 do
   begin
-     AssertTrue('#Test_StringArrayList_InsertOneMillionValuesInto -> ' +
-    'ArrayLists index ' + IntToStr(index) + ' value is not correct',
-    arr.Value[index]{$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 'test' +
-    IntToStr(index));
+    AssertTrue('#Test_StringArrayList_InsertOneMillionValuesInto -> ' +
+      'ArrayLists index ' + IntToStr(index) + ' value is not correct',
+      arr.Value[index]{$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 'test' +
+      IntToStr(index));
   end;
 
   FreeAndNil(arr);
@@ -988,11 +1068,71 @@ begin
   AssertTrue('#Test_PairIntegerArrayList_AppendObject -> ' +
     'ArrayLists index 2 second value is not correct', arr.Value[2]
     {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF}.Second = -11);
+  
+  FreeAndNil(arr);
+end;
+
+procedure TArrayListTestCase.Test_IntegerArrayList_SearchInEmpty;
+var
+  arr : TIntegerArrayList;
+  index : Integer;
+begin
+  arr := TIntegerArrayList.Create;
+  index := arr.IndexOf(2);
+
+  AssertTrue('#Test_IntegerArrayList_SearchInEmpty -> ' +
+    'ArrayLists impossible element index', index = -1);
+
+  FreeAndNil(arr);
+end;
+
+procedure TArrayListTestCase.Test_StringArrayList_SearchInEmpty;
+var
+  arr : TStringArrayList;
+  index : Integer;
+begin
+  arr := TStringArrayList.Create;
+  index := arr.IndexOf('none');
+
+  AssertTrue('#Test_StringArrayList_SearchInEmpty -> ' +
+    'ArrayLists impossible element index', index = -1);
+
+  FreeAndNil(arr);
+end;
+
+procedure TArrayListTestCase.Test_IntegerArrayList_LastElementIterator;
+var
+  arr : TIntegerArrayList;
+  iterator : TIntegerArrayList.TIterator;
+begin
+  arr := TIntegerArrayList.Create;
+
+  arr.Append(2);
+  iterator := arr.LastEntry;
+
+  AssertTrue('#Test_IntegerArrayList_LastElementIterator -> ' +
+    'ArrayLists value not correct', iterator.Value = 2);
+
+  FreeAndNil(arr);
+end;
+
+procedure TArrayListTestCase.Test_StringArrayList_LastElementIterator;
+var
+  arr : TStringArrayList;
+  iterator : TStringArrayList.TIterator;
+begin
+  arr := TStringArrayList.Create;
+
+  arr.Append('String');
+  iterator := arr.LastEntry;
+
+  AssertTrue('#Test_StringArrayList_LastElementIterator -> ' +
+    'ArrayLists value not correct', iterator.Value = 'String');
 
   FreeAndNil(arr);
 end;
 
 initialization
-  RegisterTest(TArrayListTestCase);
+  RegisterTest(TArrayListTestCase{$IFNDEF FPC}.Suite{$ENDIF});
 end.
 

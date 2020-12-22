@@ -2,6 +2,7 @@
 /unit-tests/libpascalgorithmstestcase
 /unit-tests/libpascalgorithmstestcase.fpcunit.ini
 /unit-tests/libpascalgorithmstestcase.ico
+/unit-tests/Win*/*
 
 #Project files
 .vscode/
