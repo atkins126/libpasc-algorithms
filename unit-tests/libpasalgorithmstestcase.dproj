@@ -80,7 +80,7 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
-        <DCC_UnitSearchPath>Z:\code\pascalutils\source;Z:\code\libpasc-algorithms\source;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>Z:\code\libpasc-algorithms\source;Z:\code\libpasc-algorithms\pascalutils\source;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Manifest_File>(None)</Manifest_File>
     </PropertyGroup>
@@ -100,14 +100,16 @@
         <DCCReference Include="..\source\container.orderedset.pas"/>
         <DCCReference Include="..\source\container.hashtable.pas"/>
         <DCCReference Include="..\source\container.memorybuffer.pas"/>
+        <DCCReference Include="..\source\container.trie.pas"/>
         <DCCReference Include="testcase_arraylist.pas"/>
         <DCCReference Include="testcase_list.pas"/>
         <DCCReference Include="testcase_avltree.pas"/>
         <DCCReference Include="testcase_orderedset.pas"/>
-        <DCCReference Include="testcase_hashtable.pas">
+        <DCCReference Include="testcase_hashtable.pas"/>
+        <DCCReference Include="testcase_memorybuffer.pas">
             <Form>$R *.RES</Form>
         </DCCReference>
-        <DCCReference Include="testcase_memorybuffer.pas">
+        <DCCReference Include="testcase_trie.pas">
             <Form>$R *.RES</Form>
         </DCCReference>
         <BuildConfiguration Include="Release">

@@ -1,9 +1,9 @@
 (******************************************************************************)
 (*                             libPasC-Algorithms                             *)
-(*       object pascal library of common data structures and algorithms       *)
+(* delphi and object pascal library of  common data structures and algorithms *)
 (*                 https://github.com/fragglet/c-algorithms                   *)
 (*                                                                            *)
-(* Copyright (c) 2020                                       Ivan Semenkov     *)
+(* Copyright (c) 2020 - 2021                                Ivan Semenkov     *)
 (* https://github.com/isemenkov/libpasc-algorithms          ivan@semenkov.pro *)
 (*                                                          Ukraine           *)
 (******************************************************************************)
@@ -36,7 +36,7 @@ unit container.orderedset;
 interface
 
 uses
-  SysUtils {$IFDEF USE_OPTIONAL}, utils.optional{$ENDIF}
+  SysUtils, utils.enumerate {$IFDEF USE_OPTIONAL}, utils.optional{$ENDIF}
   {$IFNDEF FPC}, utils.functor{$ENDIF};
 
 type
@@ -62,7 +62,7 @@ type
 
       POrderedSetStruct = ^TOrderedSetStruct;
       TOrderedSetStruct = record
-        table : TArrayOrderedSetEntry;
+        table : PPOrderedSetEntry;
         entries : Cardinal;
         table_size : Cardinal;
         prime_index : Cardinal;
@@ -91,31 +91,33 @@ type
       {$ENDIF}  
   
       { TOrderedSet iterator. }
-      TIterator = class
+      TIterator = class; { Fix for FreePascal compiler. }
+      TIterator = class({$IFDEF FPC}specialize{$ENDIF} 
+        TForwardIterator<V, TIterator>)
       protected
         { Create new iterator for orderedset item entry. }
         {%H-}constructor Create (OrderedSet : POrderedSetStruct; 
           Initialize : Boolean);
       public
         { Return true if iterator has correct value }
-        function HasValue : Boolean;
+        function HasValue : Boolean; override;
 
         { Retrieve the next entry in a orderedset. }
-        function Next : TIterator;
+        function Next : TIterator; override;
       protected
         { Get item value. }
         function GetValue : {$IFNDEF USE_OPTIONAL}V{$ELSE}TOptionalValue
-          {$ENDIF};
+          {$ENDIF}; override;
 
         { Return current item iterator and move it to next. }
         function GetCurrent : {$IFNDEF USE_OPTIONAL}V{$ELSE}TOptionalValue
-          {$ENDIF};  
+          {$ENDIF};  override;
       public
         { Return True if we can move to next element. }
-        function MoveNext : Boolean;
+        function MoveNext : Boolean; override;
 
         { Return enumerator for in operator. }
-        function GetEnumerator : TIterator;
+        function GetEnumerator : TIterator; override;
 
         property Value : {$IFNDEF USE_OPTIONAL}V{$ELSE}TOptionalValue{$ENDIF}
           read GetValue;
@@ -128,6 +130,8 @@ type
           next_entry : POrderedSetEntry;
           next_chain : Cardinal;
       end;
+
+      TEnumerator = {$IFDEF FPC}specialize{$ENDIF} TEnumerator<V, TIterator>;
   public
     { Create a new set. }
     constructor Create (HashFunc : THashOrderedSetFunc);
@@ -150,14 +154,16 @@ type
     { Perform a union of two sets.
       A new set containing all values which are in the first or second sets, or 
       empty set if it was not possible to allocate memory for the new set. }
-    {function Union (OrderedSet : specialize TOrderedSet<V, 
-      BinaryCompareFunctor>) : specialize TSortedSet<V, BinaryCompareFunctor>;}
+    function Union (OrderedSet : {$IFDEF FPC}specialize{$ENDIF} TOrderedSet<V, 
+      BinaryCompareFunctor>) : {$IFDEF FPC}specialize{$ENDIF} TOrderedSet<V, 
+      BinaryCompareFunctor>;
 
     { Perform an intersection of two sets.
       A new set containing all values which are in both set, or empty set if it 
       was not possible to allocate memory for the new set. }
-    {function Intersection (OrderedSet : specialize TOrderedSet<V,
-      BinaryCompareFunctor>) : specialize TOrderedSet<V, BinaryCompareFunctor>;}
+    function Intersection (OrderedSet : {$IFDEF FPC}specialize{$ENDIF} 
+      TOrderedSet<V, BinaryCompareFunctor>) : {$IFDEF FPC}specialize{$ENDIF} 
+      TOrderedSet<V, BinaryCompareFunctor>;
 
     { Retrive the first entry in orderedset. }
     function FirstEntry : TIterator; 
@@ -246,9 +252,9 @@ begin
     for chain := 0 to FOrderedSet^.table_size - 1 do
     begin
       { There is a value at the start of this chain }
-      if FOrderedSet^.table[chain] <> nil then
+      if TArrayOrderedSetEntry(FOrderedSet^.table)[chain] <> nil then
       begin
-        next_entry := FOrderedSet^.table[chain];
+        next_entry := TArrayOrderedSetEntry(FOrderedSet^.table)[chain];
         Break;    
       end;
     end;
@@ -295,10 +301,10 @@ begin
     while chain < FOrderedSet^.table_size do
     begin
       { Is there a chain at this table entry? }
-      if FOrderedSet^.table[chain] <> nil then
+      if TArrayOrderedSetEntry(FOrderedSet^.table)[chain] <> nil then
       begin
         { Valid chain found! }
-        next_entry := FOrderedSet^.table[chain];
+        next_entry := TArrayOrderedSetEntry(FOrderedSet^.table)[chain];
         Break;
       end;
       { Keep searching until we find an empty chain }
@@ -377,7 +383,7 @@ begin
   { Free all entries in all chains }
   for i := 0 to FOrderedSet^.table_size - 1 do
   begin
-    rover := FOrderedSet^.table[i];
+    rover := TArrayOrderedSetEntry(FOrderedSet^.table)[i];
 
     while rover <> nil do
     begin
@@ -388,7 +394,9 @@ begin
   end;
 
   { Free the table }
-  SetLength(FOrderedSet^.table, 0);
+  Dispose(FOrderedSet^.table);
+  FOrderedSet^.table := nil;
+  //SetLength(FOrderedSet^.table, 0);
 
   { Free the set structure }
   Dispose(FOrderedSet);
@@ -412,9 +420,15 @@ begin
   end;
 
   { Allocate the table. }
-  SetLength(FOrderedSet^.table, FOrderedSet^.table_size);
+  GetMem(FOrderedSet^.table, Sizeof(POrderedSetEntry) * 
+    FOrderedSet^.table_size);
+  FillChar(FOrderedSet^.table^, Sizeof(POrderedSetEntry) * 
+    FOrderedSet^.table_size, $0);
 
-  Result := True;
+  Result := FOrderedSet^.table <> nil;
+  //SetLength(FOrderedSet^.table, FOrderedSet^.table_size);
+
+  //Result := True;
 end;
 
 procedure TOrderedSet{$IFNDEF FPC}<V, BinaryCompareFunctor>{$ENDIF}
@@ -429,7 +443,7 @@ function TOrderedSet{$IFNDEF FPC}<V, BinaryCompareFunctor>{$ENDIF}
 var
   rover : POrderedSetEntry;
   next : POrderedSetEntry;
-  old_table : TArrayOrderedSetEntry;
+  old_table : PPOrderedSetEntry;
   old_table_size : Cardinal;
   old_prime_index : Cardinal;
   index : Cardinal;
@@ -457,7 +471,7 @@ begin
   for i := 0 to old_table_size - 1 do
   begin
     { Walk along this chain }
-    rover := old_table[i];
+    rover := TArrayOrderedSetEntry(old_table)[i];
 
     while rover <> nil do
     begin
@@ -465,8 +479,8 @@ begin
 
       { Hook this entry into the new table }
       index := FHashFunc(rover^.data) mod FOrderedSet^.table_size;
-      rover^.next := FOrderedSet^.table[index];
-      FOrderedSet^.table[index] := rover;
+      rover^.next := TArrayOrderedSetEntry(FOrderedSet^.table)[index];
+      TArrayOrderedSetEntry(FOrderedSet^.table)[index] := rover;
 
       { Advance to the next entry in the chain }
       rover := next;
@@ -474,7 +488,8 @@ begin
   end;
 
   { Free back the old table }
-  SetLength(old_table, 0);
+  Dispose(old_table);
+  //SetLength(old_table, 0);
 
   { Resized successfully }
   Result := True;
@@ -503,7 +518,7 @@ begin
 
   { Walk along this chain and attempt to determine if this data has already been
     added to the table }
-  rover := FOrderedSet^.table[index];
+  rover := TArrayOrderedSetEntry(FOrderedSet^.table)[index];
 
   while rover <> nil do
   begin
@@ -521,8 +536,8 @@ begin
   newentry^.data := Value;
 
   { Link into chain }
-  newentry^.next := FOrderedSet^.table[index];
-  FOrderedSet^.table[index] := newentry;
+  newentry^.next := TArrayOrderedSetEntry(FOrderedSet^.table)[index];
+  TArrayOrderedSetEntry(FOrderedSet^.table)[index] := newentry;
 
   { Keep track of the number of entries in the set }
   Inc(FOrderedSet^.entries);
@@ -542,7 +557,7 @@ begin
   index := FHashFunc(Value) mod FOrderedSet^.table_size;
 
   { Search this chain, until the corresponding entry is found }
-  rover := @FOrderedSet^.table[index];
+  rover := @(TArrayOrderedSetEntry(FOrderedSet^.table)[index]);
 
   while rover^ <> nil do
   begin
@@ -581,7 +596,7 @@ begin
   index := FHashFunc(Value) mod FOrderedSet^.table_size;
 
   { Search this chain, until the corresponding entry is found }
-  rover := FOrderedSet^.table[index];
+  rover := TArrayOrderedSetEntry(FOrderedSet^.table)[index];
 
   while rover <> nil do
   begin
@@ -615,6 +630,67 @@ function TOrderedSet{$IFNDEF FPC}<V, BinaryCompareFunctor>{$ENDIF}
   .GetEnumerator : TIterator;
 begin
   Result := TIterator.Create(FOrderedSet, True);
+end;
+
+function TOrderedSet{$IFNDEF FPC}<V, BinaryCompareFunctor>{$ENDIF}
+  .Union (OrderedSet : {$IFDEF FPC}specialize{$ENDIF} TOrderedSet<V,
+  BinaryCompareFunctor>) : {$IFDEF FPC}specialize{$ENDIF} TOrderedSet<V,
+  BinaryCompareFunctor>;
+var
+  Value : V;
+begin
+  Result := TOrderedSet{$IFNDEF FPC}<V, BinaryCompareFunctor>{$ENDIF}
+    .Create(FHashFunc);
+
+  { Add all values from the first set. }
+  for Value in Self do
+  begin
+    { Copy the value into the new set. }
+    if not Result.Insert(Value) then
+    begin
+      { Failed to insert. }
+      FreeAndNil(Result);
+      Exit(nil);
+    end;  
+  end;
+
+  { Add all values from the second set. }
+  for Value in OrderedSet do
+  begin
+    { Has this value been put into the new set already?
+		  If so, do not insert this again. }
+    if not Result.HasValue(Value) then
+      if not Result.Insert(Value) then
+      begin
+        { Failed to insert. }
+        FreeAndNil(Result);
+        Exit(nil);
+      end;
+  end;
+end;
+
+function TOrderedSet{$IFNDEF FPC}<V, BinaryCompareFunctor>{$ENDIF}
+  .Intersection (OrderedSet : {$IFDEF FPC}specialize{$ENDIF} TOrderedSet<V, 
+  BinaryCompareFunctor>) : {$IFDEF FPC}specialize{$ENDIF} TOrderedSet<V, 
+  BinaryCompareFunctor>;
+var
+  Value : V;
+begin
+  Result := TOrderedSet{$IFNDEF FPC}<V, BinaryCompareFunctor>{$ENDIF}
+    .Create(FHashFunc);
+  
+  { Iterate over all values in self set. }
+  for Value in Self do
+  begin
+    { Is this value in OrderedSet as well? If so, it should be in the new set. }
+    if OrderedSet.HasValue(Value) then
+      { Copy the value first before inserting, if necessary. }
+      if not OrderedSet.Insert(Value) then
+      begin
+        FreeAndNil(Result);
+        Exit(nil);
+      end;
+  end;
 end;
 
 end.

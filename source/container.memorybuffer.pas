@@ -1,6 +1,6 @@
 (******************************************************************************)
 (*                             libPasC-Algorithms                             *)
-(*       object pascal library of common data structures and algorithms       *)
+(* delphi and object pascal library of  common data structures and algorithms *)
 (*                                                                            *)
 (*                                                                            *)
 (* Copyright (c) 2020                                       Ivan Semenkov     *)
@@ -45,6 +45,7 @@ type
 
     This class based on wxWidgets wxMemoryBuffer api interface 
     https://docs.wxwidgets.org/trunk/classwx_memory_buffer.html }
+  PMemoryBuffer = ^TMemoryBuffer;
   TMemoryBuffer = class
   public
     constructor Create (ASize : Cardinal = 1024);

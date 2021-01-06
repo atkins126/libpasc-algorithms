@@ -7,7 +7,8 @@ unit testcase_arraylist;
 interface
 
 uses
-  Classes, SysUtils, container.arraylist, utils.functor, utils.pair
+  Classes, SysUtils, container.arraylist, utils.functor, utils.pair,
+  utils.enumerate, utils.functional
   {$IFDEF FPC}, fpcunit, testregistry{$ELSE}, TestFramework{$ENDIF};
 
 type
@@ -23,8 +24,50 @@ type
     function Call(AValue1, AValue2 : TPairInteger) : Integer; override;
   end;
 
-  TPairIntegerArrayList = {$IFDEF FPC}specialize{$ENDIF} TArrayList<TPairInteger,
-    TPairIntegerCompareFunctor>;
+  TPairIntegerArrayList = {$IFDEF FPC}specialize{$ENDIF} 
+    TArrayList<TPairInteger, TPairIntegerCompareFunctor>;
+
+  TFilterIntegerOddFunctor = class
+    ({$IFDEF FPC}specialize{$ENDIF} TUnaryFunctor<Integer, Boolean>)
+  public
+    function Call(AValue : Integer) : Boolean; override;
+  end;
+
+  TFilterStringFunctor = class
+    ({$IFDEF FPC}specialize{$ENDIF} TUnaryFunctor<String, Boolean>)
+  public
+    function Call(AValue : String) : Boolean; override;
+  end;
+
+  TIntegerArrayListFilterEnumerator = {$IFDEF FPC}specialize{$ENDIF} 
+    TFilterEnumerator<Integer, TIntegerArrayList.TIterator,
+    TFilterIntegerOddFunctor>;
+  TStringArrayListFilterEnumerator = {$IFDEF FPC}specialize{$ENDIF}
+    TFilterEnumerator<String, TStringArrayList.TIterator,
+    TFilterStringFunctor>;
+
+  TIntegerAdditionalAccumalate = {$IFDEF FPC}specialize{$ENDIF} 
+    TAccumulate<Integer, TIntegerArrayList.TIterator, TAdditionIntegerFunctor>;
+  TStringAdditionalAccumalate = {$IFDEF FPC}specialize{$ENDIF} 
+    TAccumulate<String, TStringArrayList.TIterator, TAdditionStringFunctor>;
+
+  TIntegerPow2Functor = class
+    ({$IFDEF FPC}specialize{$ENDIF} TUnaryFunctor<Integer, Integer>)
+  public
+    function Call(AValue : Integer) : Integer; override;
+  end;
+
+  TIntegerArrayListMap = {$IFDEF FPC}specialize{$ENDIF}
+    TMap<Integer, TIntegerArrayList.TIterator, TIntegerPow2Functor>;
+
+  TSubStringFunctor = class
+    ({$IFDEF FPC}specialize{$ENDIF} TUnaryFunctor<String, String>)
+  public
+    function Call (AValue : String) : String; override;
+  end;
+
+  TStringArrayListMap = {$IFDEF FPC}specialize{$ENDIF}
+    TMap<String, TStringArrayList.TIterator, TSubStringFunctor>;
 
   TArrayListTestCase = class(TTestCase)
   public
@@ -46,6 +89,10 @@ type
     procedure Test_PairIntegerArrayList_AppendObject;
     procedure Test_IntegerArrayList_SearchInEmpty;
     procedure Test_IntegerArrayList_LastElementIterator;
+    procedure Test_IntegerArrayList_Enumerator;
+    procedure Test_IntegerArrayList_FilterEnumerator;
+    procedure Test_IntegerArrayList_AdditionalAccumulate;
+    procedure Test_IntegerArrayList_MapPow;
 
     procedure Test_StringArrayList_CreateNewEmpty;
     procedure Test_StringArrayList_AppendNewValueInto;
@@ -60,6 +107,11 @@ type
     procedure Test_StringArrayList_InsertOneMillionValuesInto;
     procedure Test_StringArrayList_SearchInEmpty;
     procedure Test_StringArrayList_LastElementIterator;
+    procedure Test_StringArrayList_Enumerator;
+    procedure Test_StringArrayList_FilterEnumerator;
+    procedure Test_StringArrayList_AdditionalAccumulate;
+    procedure Test_StringArrayList_MapSubString;
+
   end;
 
 implementation
@@ -77,6 +129,26 @@ begin
   begin
     Result := 0;
   end;
+end;
+
+function TIntegerPow2Functor.Call (AValue : Integer) : Integer;
+begin
+  Result := AValue * AValue;
+end;
+
+function TSubStringFunctor.Call (AValue : String) : String;
+begin
+  Result := Copy(AValue, 5, Length(AValue) - 4);
+end;
+
+function TFilterIntegerOddFunctor.Call (AValue : Integer) : Boolean;
+begin
+  Result := (AValue mod 2) = 1;
+end;
+
+function TFilterStringFunctor.Call (AValue : String) : Boolean;
+begin
+  Result := (AValue = 'test');
 end;
 
 {$IFNDEF FPC}
@@ -816,7 +888,7 @@ begin
           {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 12);
       end;
     end;
-    iterator := iterator.Next;
+    iterator := TIntegerArrayList.TIterator(iterator.Next);
     Inc(counter);
   end;
   AssertTrue('#Test_IntegerArrayList_IterateValues -> ' +
@@ -868,7 +940,7 @@ begin
           {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 'test12');
       end;
     end;
-    iterator := iterator.Next;
+    iterator := TStringArrayList.TIterator(iterator.Next);
     Inc(counter);
   end;
   AssertTrue('#Test_StringArrayList_IterateValues -> ' +
@@ -880,7 +952,8 @@ end;
 procedure TArrayListTestCase.Test_IntegerArrayList_IterateRange;
 var
   arr : TIntegerArrayList;
-  value : Integer;
+  value : {$IFNDEF USE_OPTIONAL}Integer{$ELSE}TIntegerArrayList.TOptionalValue
+    {$ENDIF};
   counter : Cardinal;
 begin
   arr := TIntegerArrayList.Create;
@@ -930,7 +1003,8 @@ end;
 procedure TArrayListTestCase.Test_StringArrayList_IterateRange;
 var
   arr : TStringArrayList;
-  value : String;
+  value : {$IFNDEF USE_OPTIONAL}String{$ELSE}TStringArrayList.TOptionalValue
+    {$ENDIF};
   counter : Cardinal;
 begin
   arr := TStringArrayList.Create;
@@ -1111,7 +1185,8 @@ begin
   iterator := arr.LastEntry;
 
   AssertTrue('#Test_IntegerArrayList_LastElementIterator -> ' +
-    'ArrayLists value not correct', iterator.Value = 2);
+    'ArrayLists value not correct', iterator.Value
+    {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 2);
 
   FreeAndNil(arr);
 end;
@@ -1127,9 +1202,361 @@ begin
   iterator := arr.LastEntry;
 
   AssertTrue('#Test_StringArrayList_LastElementIterator -> ' +
-    'ArrayLists value not correct', iterator.Value = 'String');
+    'ArrayLists value not correct', iterator.Value
+    {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 'String');
 
   FreeAndNil(arr);
+end;
+
+procedure TArrayListTestCase.Test_IntegerArrayList_Enumerator;
+var
+  arr : TIntegerArrayList;
+  arr_iter : TIntegerArrayList.TIterator;
+  iter : TIntegerArrayList.TEnumerator.TIterator;
+begin
+  arr := TIntegerArrayList.Create;
+
+  arr.Append(1);
+  arr.Append(2);
+  arr.Append(3);
+  arr.Append(4);
+  arr.Append(5);
+
+  AssertTrue('#Test_IntegerArrayList_Enumerator -> ' +
+    'ArrayLists length is not correct', arr.Length = 5);
+
+  arr_iter := arr.FirstEntry;
+  for iter in TIntegerArrayList.TEnumerator.Create(arr_iter) do
+  begin
+    case iter.Index of
+      0 : begin
+        AssertTrue('#Test_IntegerArrayList_Enumerator -> ' +
+          'Iterator value is not correct', iter.Value
+          {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 1);
+      end;
+      1 : begin
+        AssertTrue('#Test_IntegerArrayList_Enumerator -> ' +
+          'Iterator value is not correct', iter.Value
+          {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 2);
+      end;
+      2 : begin
+        AssertTrue('#Test_IntegerArrayList_Enumerator -> ' +
+          'Iterator value is not correct', iter.Value
+          {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 3);
+      end;
+      3 : begin
+        AssertTrue('#Test_IntegerArrayList_Enumerator -> ' +
+          'Iterator value is not correct', iter.Value
+          {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 4);
+      end;
+      4 : begin
+        AssertTrue('#Test_IntegerArrayList_Enumerator -> ' +
+          'Iterator value is not correct', iter.Value
+          {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 5);
+      end;
+      5 : begin
+        Fail('#Test_IntegerArrayList_Enumerator -> ' +
+          'Impossible iterator index');
+      end;
+    end;
+  end;
+end;
+
+procedure TArrayListTestCase.Test_StringArrayList_Enumerator;
+var
+  arr : TStringArrayList;
+  arr_iter : TStringArrayList.TIterator;
+  iter : TStringArrayList.TEnumerator.TIterator;
+begin
+  arr := TStringArrayList.Create;
+
+  arr.Append('string1');
+  arr.Append('string2');
+  arr.Append('string3');
+  arr.Append('string4');
+  arr.Append('string5');
+
+  AssertTrue('#Test_StringArrayList_Enumerator -> ' +
+    'ArrayLists length is not correct', arr.Length = 5);
+
+  arr_iter := arr.FirstEntry;
+  for iter in TStringArrayList.TEnumerator.Create(arr_iter) do
+  begin
+    case iter.Index of
+      0 : begin
+        AssertTrue('#Test_StringArrayList_Enumerator -> ' +
+          'Iterator value is not correct', iter.Value
+          {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 'string1');
+      end;
+      1 : begin
+        AssertTrue('#Test_StringArrayList_Enumerator -> ' +
+          'Iterator value is not correct', iter.Value
+          {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 'string2');
+      end;
+      2 : begin
+        AssertTrue('#Test_StringArrayList_Enumerator -> ' +
+          'Iterator value is not correct', iter.Value
+          {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 'string3');
+      end;
+      3 : begin
+        AssertTrue('#Test_StringArrayList_Enumerator -> ' +
+          'Iterator value is not correct', iter.Value
+          {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 'string4');
+      end;
+      4 : begin
+        AssertTrue('#Test_StringArrayList_Enumerator -> ' +
+          'Iterator value is not correct', iter.Value
+          {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 'string5');
+      end;
+      5 : begin
+        Fail('#Test_StringArrayList_Enumerator -> ' +
+          'Impossible iterator index');
+      end;
+    end;
+  end;
+end;
+
+procedure TArrayListTestCase.Test_IntegerArrayList_FilterEnumerator;
+var
+  arr : TIntegerArrayList;
+  iter : TIntegerArrayListFilterEnumerator.TIterator;
+  index : Integer;
+begin
+  arr := TIntegerArrayList.Create;
+
+  arr.Append(1);
+  arr.Append(2);
+  arr.Append(3);
+  arr.Append(4);
+  arr.Append(5);
+  arr.Append(6);
+
+  AssertTrue('#Test_IntegerArrayList_FilterEnumerator -> ' +
+    'ArrayLists length is not correct', arr.Length = 6);
+
+  index := 0;
+  for iter in TIntegerArrayListFilterEnumerator.Create(arr.FirstEntry,
+    TFilterIntegerOddFunctor.Create) do
+  begin
+    case Index of
+      0 : begin
+        AssertTrue('#Test_IntegerArrayList_FilterEnumerator -> ' +
+          'Iterator value is not correct', iter.Value
+          {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 1);
+      end;
+      1 : begin
+        AssertTrue('#Test_IntegerArrayList_FilterEnumerator -> ' +
+          'Iterator value is not correct', iter.Value
+          {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 3);
+      end;
+      2 : begin
+        AssertTrue('#Test_IntegerArrayList_FilterEnumerator -> ' +
+          'Iterator value is not correct', iter.Value
+          {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 5);
+      end;
+      3 : begin
+        Fail('#Test_IntegerArrayList_FilterEnumerator -> ' +
+          'Impossible iterator index');
+      end;
+    end;
+
+    Inc(Index);
+  end;
+end;
+
+procedure TArrayListTestCase.Test_StringArrayList_FilterEnumerator;
+var
+  arr : TStringArrayList;
+  iter : TStringArrayListFilterEnumerator.TIterator;
+  index : Integer;
+begin
+  arr := TStringArrayList.Create;
+
+  arr.Append('some string');
+  arr.Append('test');
+  arr.Append('test');
+  arr.Append('another string');
+  arr.Append('test string');
+  arr.Append('string');
+  arr.Append('test');
+
+  AssertTrue('#Test_StringArrayList_FilterEnumerator -> ' +
+    'ArrayLists length is not correct', arr.Length = 7);
+
+  index := 0;
+  for iter in TStringArrayListFilterEnumerator.Create(arr.FirstEntry,
+    TFilterStringFunctor.Create) do
+  begin
+    case Index of
+      0 : begin
+        AssertTrue('#Test_StringArrayList_FilterEnumerator -> ' +
+          'Iterator value is not correct', iter.Value
+          {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 'test');
+      end;
+      1 : begin
+        AssertTrue('#Test_StringArrayList_FilterEnumerator -> ' +
+          'Iterator value is not correct', iter.Value
+          {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 'test');
+      end;
+      2 : begin
+        AssertTrue('#Test_StringArrayList_FilterEnumerator -> ' +
+          'Iterator value is not correct', iter.Value
+          {$IFDEF USE_OPTIONAL}.Unwrap{$ENDIF} = 'test');
+      end;
+      3 : begin
+        Fail('#Test_StringArrayList_FilterEnumerator -> ' +
+          'Impossible iterator index');
+      end;
+    end;
+
+    Inc(Index);
+  end;
+end;
+
+procedure TArrayListTestCase.Test_IntegerArrayList_AdditionalAccumulate;
+var
+  arr : TIntegerArrayList;
+  accum : TIntegerAdditionalAccumalate;
+begin
+  arr := TIntegerArrayList.Create;
+
+  arr.Append(1);
+  arr.Append(2);
+  arr.Append(3);
+  arr.Append(4);
+  arr.Append(5);
+
+  AssertTrue('#Test_IntegerArrayList_AdditionalAccumulate -> ' +
+    'ArrayLists length is not correct', arr.Length = 5);
+
+  accum := TIntegerAdditionalAccumalate.Create(arr.FirstEntry, 0);
+  AssertTrue('#Test_IntegerArrayList_AdditionalAccumulate -> ' +
+    'ArrayLists accumulate value is not correct', accum.Value = 15);  
+end;
+
+procedure TArrayListTestCase.Test_StringArrayList_AdditionalAccumulate;
+var
+  arr : TStringArrayList;
+  accum : TStringAdditionalAccumalate;
+begin
+  arr := TStringArrayList.Create;
+
+  arr.Append('1');
+  arr.Append('2');
+  arr.Append('3');
+  arr.Append('4');
+  arr.Append('5');
+
+  AssertTrue('#Test_StringArrayList_AdditionalAccumulate -> ' +
+    'ArrayLists length is not correct', arr.Length = 5);
+
+  accum := TStringAdditionalAccumalate.Create(arr.FirstEntry, '');
+  AssertTrue('#Test_StringArrayList_AdditionalAccumulate -> ' +
+    'ArrayLists accumulate value is not correct', accum.Value = '12345');  
+end;
+
+procedure TArrayListTestCase.Test_IntegerArrayList_MapPow;
+var
+  arr : TIntegerArrayList;
+  map_iter : TIntegerArrayListMap.TIterator;
+  index : Integer;
+begin
+  arr := TIntegerArrayList.Create;
+
+  arr.Append(2);
+  arr.Append(3);
+  arr.Append(4);
+  arr.Append(5);
+  arr.Append(6);
+
+  AssertTrue('#Test_IntegerArrayList_MapPow -> ' +
+    'ArrayLists length is not correct', arr.Length = 5);
+  
+  index := 0;
+  for map_iter in TIntegerArrayListMap.Create(arr.FirstEntry, 
+    TIntegerPow2Functor.Create) do
+  begin
+    case index of
+      0 : begin
+        AssertTrue('#Test_IntegerArrayList_MapPow -> ' +
+          'ArrayLists value 0 is not correct', map_iter.Value = 4);
+      end;
+      1 : begin
+        AssertTrue('#Test_IntegerArrayList_MapPow -> ' +
+          'ArrayLists value 1 is not correct', map_iter.Value = 9);
+      end;
+      2 : begin
+        AssertTrue('#Test_IntegerArrayList_MapPow -> ' +
+          'ArrayLists value 2 is not correct', map_iter.Value = 16);
+      end;
+      3 : begin
+        AssertTrue('#Test_IntegerArrayList_MapPow -> ' +
+          'ArrayLists value 3 is not correct', map_iter.Value = 25);
+      end;
+      4 : begin
+        AssertTrue('#Test_IntegerArrayList_MapPow -> ' +
+          'ArrayLists value 4 is not correct', map_iter.Value = 36);
+      end;
+      5 : begin
+        Fail('#Test_IntegerArrayList_MapPow -> ' +
+          'Impossible iterator index');
+      end;
+    end;
+
+    Inc(index);
+  end;  
+end;
+
+procedure TArrayListTestCase.Test_StringArrayList_MapSubString;
+var
+  arr : TStringArrayList;
+  map_iter : TStringArrayListMap.TIterator;
+  index : Integer;
+begin
+  arr := TStringArrayList.Create;
+
+  arr.Append('test2');
+  arr.Append('test3');
+  arr.Append('test4');
+  arr.Append('test5');
+  arr.Append('testtest');
+
+  AssertTrue('#Test_StringArrayList_MapSubString -> ' +
+    'ArrayLists length is not correct', arr.Length = 5);
+  
+  index := 0;
+  for map_iter in TStringArrayListMap.Create(arr.FirstEntry, 
+    TSubStringFunctor.Create) do
+  begin
+    case index of
+      0 : begin
+        AssertTrue('#Test_StringArrayList_MapSubString -> ' +
+          'ArrayLists value 0 is not correct', map_iter.Value = '2');
+      end;
+      1 : begin
+        AssertTrue('#Test_StringArrayList_MapSubString -> ' +
+          'ArrayLists value 1 is not correct', map_iter.Value = '3');
+      end;
+      2 : begin
+        AssertTrue('#Test_StringArrayList_MapSubString -> ' +
+          'ArrayLists value 2 is not correct', map_iter.Value = '4');
+      end;
+      3 : begin
+        AssertTrue('#Test_StringArrayList_MapSubString -> ' +
+          'ArrayLists value 3 is not correct', map_iter.Value = '5');
+      end;
+      4 : begin
+        AssertTrue('#Test_StringArrayList_MapSubString -> ' +
+          'ArrayLists value 4 is not correct', map_iter.Value = 'test');
+      end;
+      5 : begin
+        Fail('#Test_StringArrayList_MapSubString -> ' +
+          'Impossible iterator index');
+      end;
+    end;
+
+    Inc(index);
+  end;  
 end;
 
 initialization
