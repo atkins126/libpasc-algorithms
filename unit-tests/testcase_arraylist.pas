@@ -39,6 +39,10 @@ type
     function Call(AValue : String) : Boolean; override;
   end;
 
+  TIntegerArrayListEnumerator = {$IFDEF FPC}specialize{$ENDIF}
+    TEnumerator<Integer, TIntegerArrayList.TIterator>;
+  TStringArrayListEnumerator = {$IFDEF FPC}specialize{$ENDIF}
+    TEnumerator<String, TStringArrayList.TIterator>;
   TIntegerArrayListFilterEnumerator = {$IFDEF FPC}specialize{$ENDIF} 
     TFilterEnumerator<Integer, TIntegerArrayList.TIterator,
     TFilterIntegerOddFunctor>;
@@ -1212,7 +1216,7 @@ procedure TArrayListTestCase.Test_IntegerArrayList_Enumerator;
 var
   arr : TIntegerArrayList;
   arr_iter : TIntegerArrayList.TIterator;
-  iter : TIntegerArrayList.TEnumerator.TIterator;
+  iter : TIntegerArrayListEnumerator.TIterator;
 begin
   arr := TIntegerArrayList.Create;
 
@@ -1226,7 +1230,7 @@ begin
     'ArrayLists length is not correct', arr.Length = 5);
 
   arr_iter := arr.FirstEntry;
-  for iter in TIntegerArrayList.TEnumerator.Create(arr_iter) do
+  for iter in TIntegerArrayListEnumerator.Create(arr_iter) do
   begin
     case iter.Index of
       0 : begin
@@ -1266,7 +1270,7 @@ procedure TArrayListTestCase.Test_StringArrayList_Enumerator;
 var
   arr : TStringArrayList;
   arr_iter : TStringArrayList.TIterator;
-  iter : TStringArrayList.TEnumerator.TIterator;
+  iter : TStringArrayListEnumerator.TIterator;
 begin
   arr := TStringArrayList.Create;
 
@@ -1280,7 +1284,7 @@ begin
     'ArrayLists length is not correct', arr.Length = 5);
 
   arr_iter := arr.FirstEntry;
-  for iter in TStringArrayList.TEnumerator.Create(arr_iter) do
+  for iter in TStringArrayListEnumerator.Create(arr_iter) do
   begin
     case iter.Index of
       0 : begin

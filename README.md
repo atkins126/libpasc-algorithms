@@ -75,7 +75,17 @@ type
   generic TArrayList<T, BinaryCompareFunctor> = class
 ```
 
-BinaryCompareFunctor is based on [utils.functor.TBinaryFunctor](https://github.com/isemenkov/pascalutils/blob/master/source/utils.functor.pas) interface and used to compare two array items. Needed for sort and search functions.
+BinaryCompareFunctor is based on [utils.functor.TBinaryFunctor](https://github.com/isemenkov/pascalutils/wiki/TBinaryFunctor) interface and used to compare two array items. Needed for sort and search functions.
+
+  * [Create](https://github.com/isemenkov/libpasc-algorithms/wiki/TArrayList#create)
+  * [Insert](https://github.com/isemenkov/libpasc-algorithms/wiki/TArrayList#insert)
+  * [Remove](https://github.com/isemenkov/libpasc-algorithms/wiki/TArrayList#remove)
+  * [Search](https://github.com/isemenkov/libpasc-algorithms/wiki/TArrayList#search)
+  * [Sort](https://github.com/isemenkov/libpasc-algorithms/wiki/TArrayList#sort)
+  * [Values](https://github.com/isemenkov/libpasc-algorithms/wiki/TArrayList#values)
+  * [Length](https://github.com/isemenkov/libpasc-algorithms/wiki/TArrayList#length)
+  * [IsEmpty](https://github.com/isemenkov/libpasc-algorithms/wiki/TArrayList#isempty)
+  * [Iterate](https://github.com/isemenkov/libpasc-algorithms/wiki/TArrayList#iterate)
 
 *More details read on* [wiki page](https://github.com/isemenkov/libpasc-algorithms/wiki/TArrayList).
 
@@ -93,7 +103,16 @@ type
   generic TSortedArray<T, BinaryCompareFunctor> = class
 ```
 
-BinaryCompareFunctor is based on [utils.functor.TBinaryFunctor](https://github.com/isemenkov/pascalutils/blob/master/source/utils.functor.pas) interface and used to compare two array items. Needed for search function.
+BinaryCompareFunctor is based on [utils.functor.TBinaryFunctor](https://github.com/isemenkov/pascalutils/wiki/TBinaryFunctor) interface and used to compare two array items. Needed for search function.
+
+  * [Create](https://github.com/isemenkov/libpasc-algorithms/wiki/TSortedArray#create)
+  * [Append](https://github.com/isemenkov/libpasc-algorithms/wiki/TSortedArray#append)
+  * [Remove](https://github.com/isemenkov/libpasc-algorithms/wiki/TSortedArray#remove)
+  * [Search](https://github.com/isemenkov/libpasc-algorithms/wiki/TSortedArray#search)
+  * [Values](https://github.com/isemenkov/libpasc-algorithms/wiki/TSortedArray#values)
+  * [Length](https://github.com/isemenkov/libpasc-algorithms/wiki/TSortedArray#length)
+  * [IsEmpty](https://github.com/isemenkov/libpasc-algorithms/wiki/TSortedArray#isempty)
+  * [Iterate](https://github.com/isemenkov/libpasc-algorithms/wiki/TSortedArray#iterate)
 
 *More details read on* [wiki page](https://github.com/isemenkov/libpasc-algorithms/wiki/TSortedArray).
 
@@ -111,7 +130,16 @@ type
   generic TList<T, BinaryCompareFunctor> = class
 ```
 
-BinaryCompareFunctor is based on [utils.functor.TBinaryFunctor](https://github.com/isemenkov/pascalutils/blob/master/source/utils.functor.pas) interface and used to compare two list items. Needed for sort and search functions.
+BinaryCompareFunctor is based on [utils.functor.TBinaryFunctor](https://github.com/isemenkov/pascalutils/wiki/TBinaryFunctor) interface and used to compare two list items. Needed for sort and search functions.
+
+  * [Create](https://github.com/isemenkov/libpasc-algorithms/wiki/TList#create)
+  * [Insert](https://github.com/isemenkov/libpasc-algorithms/wiki/TList#insert)
+  * [Remove](https://github.com/isemenkov/libpasc-algorithms/wiki/TList#remove)
+  * [Search](https://github.com/isemenkov/libpasc-algorithms/wiki/TList#search)
+  * [Sort](https://github.com/isemenkov/libpasc-algorithms/wiki/TList#sort)
+  * [Length](https://github.com/isemenkov/libpasc-algorithms/wiki/TList#length)
+  * [IsEmpty](https://github.com/isemenkov/libpasc-algorithms/wiki/TList#isempty)
+  * [Iterate](https://github.com/isemenkov/libpasc-algorithms/wiki/TList#iterate)
 
 *More details read on* [wiki page](https://github.com/isemenkov/libpasc-algorithms/wiki/TList).
 
@@ -131,7 +159,15 @@ type
   generic TAvlTree<K, V, KeyBinaryCompareFunctor> = class
 ```
 
-KeyBinaryCompareFunctor is based on [utils.functor.TBinaryFunctor](https://github.com/isemenkov/pascalutils/blob/master/source/utils.functor.pas) interface and used to compare two keys. 
+KeyBinaryCompareFunctor is based on [utils.functor.TBinaryFunctor](https://github.com/isemenkov/pascalutils/wiki/TBinaryFunctor) interface and used to compare two keys. 
+
+  * [Create](https://github.com/isemenkov/libpasc-algorithms/wiki/TAvlTree#create)
+  * [Insert](https://github.com/isemenkov/libpasc-algorithms/wiki/TAvlTree#insert)
+  * [Remove](https://github.com/isemenkov/libpasc-algorithms/wiki/TAvlTree#remove)
+  * [Search](https://github.com/isemenkov/libpasc-algorithms/wiki/TAvlTree#search)
+  * [NumEntries](https://github.com/isemenkov/libpasc-algorithms/wiki/TAvlTree#numentries)
+  * [IsEmpty](https://github.com/isemenkov/libpasc-algorithms/wiki/TAvlTree#isempty)
+  * [Iterate](https://github.com/isemenkov/libpasc-algorithms/wiki/TAvlTree#iterate)
 
 *More details read on* [wiki page](https://github.com/isemenkov/libpasc-algorithms/wiki/TAvlTree).
 
@@ -149,7 +185,15 @@ type
   generic THashTable<K, V, KeyBinaryCompareFunctor> = class
 ```
 
-KeyBinaryCompareFunctor is based on [utils.functor.TBinaryFunctor](https://github.com/isemenkov/pascalutils/blob/master/source/utils.functor.pas) interface and used to compare two keys. 
+KeyBinaryCompareFunctor is based on [utils.functor.TBinaryFunctor](https://github.com/isemenkov/pascalutils/wiki/TBinaryFunctor) interface and used to compare two keys. 
+
+  * [Create](https://github.com/isemenkov/libpasc-algorithms/wiki/THashTable#create)
+  * [Insert](https://github.com/isemenkov/libpasc-algorithms/wiki/THashTable#insert)
+  * [Remove](https://github.com/isemenkov/libpasc-algorithms/wiki/THashTable#remove)
+  * [Search](https://github.com/isemenkov/libpasc-algorithms/wiki/THashTable#search)
+  * [NumEntries](https://github.com/isemenkov/libpasc-algorithms/wiki/THashTable#numentries)
+  * [IsEmpty](https://github.com/isemenkov/libpasc-algorithms/wiki/THashTable#isempty)
+  * [Iterate](https://github.com/isemenkov/libpasc-algorithms/wiki/THashTable#iterate)
 
 *More details read on* [wiki page](https://github.com/isemenkov/libpasc-algorithms/wiki/THashTable).
 
@@ -167,7 +211,17 @@ type
   generic TOrderedSet<V, BinaryCompareFunctor> = class
 ```
 
-BinaryCompareFunctor is based on [utils.functor.TBinaryFunctor](https://github.com/isemenkov/pascalutils/blob/master/source/utils.functor.pas) interface and used to compare two items.
+BinaryCompareFunctor is based on [utils.functor.TBinaryFunctor](https://github.com/isemenkov/pascalutils/wiki/TBinaryFunctor) interface and used to compare two items.
+
+  * [Create](https://github.com/isemenkov/libpasc-algorithms/wiki/TOrderedSet#create)
+  * [Insert](https://github.com/isemenkov/libpasc-algorithms/wiki/TOrderedSet#insert)
+  * [Remove](https://github.com/isemenkov/libpasc-algorithms/wiki/TOrderedSet#remove)
+  * [HasValue](https://github.com/isemenkov/libpasc-algorithms/wiki/TOrderedSet#hasvalue)
+  * [NumEntries](https://github.com/isemenkov/libpasc-algorithms/wiki/TOrderedSet#numentries)
+  * [IsEmpty](https://github.com/isemenkov/libpasc-algorithms/wiki/TOrderedSet#isempty)
+  * [Union](https://github.com/isemenkov/libpasc-algorithms/wiki/TOrderedSet#union)
+  * [Intersection](https://github.com/isemenkov/libpasc-algorithms/wiki/TOrderedSet#intersection)
+  * [Iterate](https://github.com/isemenkov/libpasc-algorithms/wiki/TOrderedSet#iterate)
 
 *More details read on* [wiki page](https://github.com/isemenkov/libpasc-algorithms/wiki/TOrderedSet).
 
@@ -185,7 +239,13 @@ type
   generic TMinBinaryHeap<V, BinaryCompareFunctor> = class
 ```
 
-BinaryCompareFunctor is based on [utils.functor.TBinaryFunctor](https://github.com/isemenkov/pascalutils/blob/master/source/utils.functor.pas) interface and used to compare two items.
+BinaryCompareFunctor is based on [utils.functor.TBinaryFunctor](https://github.com/isemenkov/pascalutils/wiki/TBinaryFunctor) interface and used to compare two items.
+
+  * [Create](https://github.com/isemenkov/libpasc-algorithms/wiki/TMinBinaryHeap#create)
+  * [Append](https://github.com/isemenkov/libpasc-algorithms/wiki/TMinBinaryHeap#append)
+  * [Pop](https://github.com/isemenkov/libpasc-algorithms/wiki/TMinBinaryHeap#pop)
+  * [NumEntries](https://github.com/isemenkov/libpasc-algorithms/wiki/TMinBinaryHeap#numentries)
+  * [IsEmpty](https://github.com/isemenkov/libpasc-algorithms/wiki/TMinBinaryHeap#isempty)
 
 *More details read on* [wiki page](https://github.com/isemenkov/libpasc-algorithms/wiki/TMinBinaryHeap).
 
@@ -203,7 +263,13 @@ type
   generic TMaxBinaryHeap<V, BinaryCompareFunctor> = class
 ```
 
-BinaryCompareFunctor is based on [utils.functor.TBinaryFunctor](https://github.com/isemenkov/pascalutils/blob/master/source/utils.functor.pas) interface and used to compare two items.
+BinaryCompareFunctor is based on [utils.functor.TBinaryFunctor](https://github.com/isemenkov/pascalutils/wiki/TBinaryFunctor) interface and used to compare two items.
+
+  * [Create](https://github.com/isemenkov/libpasc-algorithms/wiki/TMaxBinaryHeap#create)
+  * [Append](https://github.com/isemenkov/libpasc-algorithms/wiki/TMaxBinaryHeap#append)
+  * [Pop](https://github.com/isemenkov/libpasc-algorithms/wiki/TMaxBinaryHeap#pop)
+  * [NumEntries](https://github.com/isemenkov/libpasc-algorithms/wiki/TMaxBinaryHeap#numentries)
+  * [IsEmpty](https://github.com/isemenkov/libpasc-algorithms/wiki/TMaxBinaryHeap#isempty)
 
 *More details read on* [wiki page](https://github.com/isemenkov/libpasc-algorithms/wiki/TMaxBinaryHeap).
 
@@ -221,6 +287,13 @@ type
   generic TTrie<V> = class
 ```
 
+  * [Create](https://github.com/isemenkov/libpasc-algorithms/wiki/TTrie#create)
+  * [Insert](https://github.com/isemenkov/libpasc-algorithms/wiki/TTrie#insert)
+  * [Remove](https://github.com/isemenkov/libpasc-algorithms/wiki/TTrie#remove)
+  * [Search](https://github.com/isemenkov/libpasc-algorithms/wiki/TTrie#search)
+  * [NumEntries](https://github.com/isemenkov/libpasc-algorithms/wiki/TTrie#numeentries)
+  * [IsEmpty](https://github.com/isemenkov/libpasc-algorithms/wiki/TTrie#isempty)
+
 *More details read on* [wiki page](https://github.com/isemenkov/libpasc-algorithms/wiki/TTrie).
 
 
@@ -237,6 +310,13 @@ type
   generic TQueue<T> = class
 ```
 
+  * [Create](https://github.com/isemenkov/libpasc-algorithms/wiki/TQueue#create)
+  * [Insert](https://github.com/isemenkov/libpasc-algorithms/wiki/TQueue#insert)
+  * [Remove](https://github.com/isemenkov/libpasc-algorithms/wiki/TQueue#remove)
+  * [Values](https://github.com/isemenkov/libpasc-algorithms/wiki/TQueue#values)
+  * [NumEntries](https://github.com/isemenkov/libpasc-algorithms/wiki/TQueue#numentries)
+  * [IsEmpty](https://github.com/isemenkov/libpasc-algorithms/wiki/TQueue#isempty)
+
 *More details read on* [wiki page](https://github.com/isemenkov/libpasc-algorithms/wiki/TQueue).
 
 
@@ -252,5 +332,13 @@ uses
 type
   TMemoryBuffer = class
 ```
+
+  * [Create](https://github.com/isemenkov/libpasc-algorithms/wiki/TMemoryBuffer#create)
+  * [Insert](https://github.com/isemenkov/libpasc-algorithms/wiki/TMemoryBuffer#insert)
+  * [Remove](https://github.com/isemenkov/libpasc-algorithms/wiki/TMemoryBuffer#remove)
+  * [Resize](https://github.com/isemenkov/libpasc-algorithms/wiki/TMemoryBuffer#resize)
+  * [Values](https://github.com/isemenkov/libpasc-algorithms/wiki/TMemoryBuffer#values)
+  * [Length](https://github.com/isemenkov/libpasc-algorithms/wiki/TMemoryBuffer#length)
+  * [IsEmpty](https://github.com/isemenkov/libpasc-algorithms/wiki/TMemoryBuffer#isempty)
 
 *More details read on* [wiki page](https://github.com/isemenkov/libpasc-algorithms/wiki/TMemoryBuffer).
